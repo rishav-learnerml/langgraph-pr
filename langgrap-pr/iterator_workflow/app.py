@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from src.graph.job_post_graph import JobPostGraph
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 
 # Initialize FastAPI app
 app = FastAPI(title="Job Post Generator API")
@@ -39,3 +42,15 @@ def generate_job_post(request: JobPostRequest):
 
     final_state = workflow.invoke(initial_state)  # type: ignore
     return final_state  # return as JSON automatically
+
+# --- Static files & UI ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UI_DIR = os.path.join(BASE_DIR, "ui")
+
+# Serve the UI directory (style.css, script.js, assets)
+if os.path.isdir(UI_DIR):
+    app.mount("/", StaticFiles(directory=UI_DIR, html=True), name="ui")
+
+    @app.get("/")
+    def read_root():
+        return FileResponse(os.path.join(UI_DIR, "index.html"))
