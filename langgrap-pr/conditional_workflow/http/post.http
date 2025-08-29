@@ -1,0 +1,9 @@
+### Generate Job Post
+POST http://127.0.0.1:8000/generate_job_post
+Content-Type: application/json
+
+{
+  "topic": "Software Engineer",
+  "iterations": 1,
+  "max_iterations": 5
+}

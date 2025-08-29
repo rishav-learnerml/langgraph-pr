@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Job Post Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="body-gradient font-sans min-h-screen">
+  <div class="container mx-auto py-8 px-4">
+    <header class="mb-10">
+      <div class="brand-card">
+        <div class="brand-icon">✨</div>
+        <div>
+          <h1 class="brand-title">AI Job Post Generator</h1>
+          <p class="brand-subtitle">Craft stunning, ready-to-share job posts in seconds</p>
+        </div>
+        <span class="badge badge-primary">v1.0</span>
+      </div>
+    </header>
+
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section class="lg:col-span-1">
+        <div class="card glass p-6">
+          <h2 class="section-title">Create</h2>
+          <label class="label">Job Topic</label>
+          <input id="topic" type="text" placeholder="e.g., Software Engineer" class="input mb-4" />
+          <button id="generateBtn" class="btn btn-primary w-full">🚀 Generate Job Post</button>
+          <div id="loader" class="loader hidden mt-4">
+            <span class="loader-spinner"></span>
+            <span class="loader-text">Generating post...</span>
+          </div>
+          <div class="tips mt-5">
+            <span class="tip-chip">#Hiring</span>
+            <span class="tip-chip">#Remote</span>
+            <span class="tip-chip">#CareerGrowth</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="lg:col-span-2">
+        <div id="responseSection" class="hidden animate-fadeIn space-y-6">
+          <div class="card glass p-6">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="section-title flex items-center gap-2">📄 Generated Job Post</h2>
+              <div class="flex gap-2">
+                <button data-copy="preview" class="btn btn-success">📋 Copy (Styled)</button>
+                <button data-copy="linkedin" class="btn btn-info">🔗 Copy (LinkedIn)</button>
+              </div>
+            </div>
+            <div id="contentBox" class="prose-box"></div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="card glass p-6">
+              <h3 class="section-subtitle">📝 Evaluation</h3>
+              <p id="evaluation" class="evaluation-text"></p>
+            </div>
+            <div class="card glass p-6">
+              <h3 class="section-subtitle">💡 Feedback</h3>
+              <p id="feedback" class="feedback-text"></p>
+            </div>
+          </div>
+
+          <div class="card glass p-6">
+            <h3 class="section-subtitle mb-4">📜 Content History</h3>
+            <div id="historyContainer" class="space-y-3"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-10 text-center text-sm text-indigo-900/70">
+      Made with ❤️ using LangGraph & FastAPI
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
