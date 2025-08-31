@@ -1,40 +1,33 @@
 import React from "react";
 import SkeletonLoader from "@/utils/shimmer/SkeletonLoader";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 const ChatPageSkeleton: React.FC = () => {
   return (
-    <Card className="w-full max-w-2xl mx-auto flex flex-col h-[80vh]">
-      <CardHeader>
-        <CardTitle className="text-white">
-          <SkeletonLoader className="h-8 w-32" />
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 p-4 flex flex-col gap-2">
-        <div className="flex justify-start">
-          <SkeletonLoader className="h-10 w-3/4" />
+    <div className="relative flex flex-col h-[78vh] overflow-hidden bg-gradient-to-br from-background via-muted/30 to-background text-foreground">
+      {/* Top Navigation */}
+      <header className="sticky top-0 z-20 flex items-center justify-between px-6 pb-2 border-b border-border backdrop-blur-md bg-background/80">
+        <div className="flex items-center gap-3">
+          <SkeletonLoader className="h-6 w-6 rounded-full" />
+          <SkeletonLoader className="h-6 w-48" />
         </div>
-        <div className="flex justify-end">
-          <SkeletonLoader className="h-10 w-2/3" />
+        <SkeletonLoader className="h-8 w-8 rounded-full" />
+      </header>
+
+      {/* Chat Area */}
+      <main className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
+        <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground space-y-4">
+          <SkeletonLoader className="h-14 w-14 rounded-full" />
+          <SkeletonLoader className="h-6 w-64" />
+          <SkeletonLoader className="h-4 w-48" />
         </div>
-        <div className="flex justify-start">
-          <SkeletonLoader className="h-10 w-1/2" />
-        </div>
-        <div className="flex justify-end">
-          <SkeletonLoader className="h-10 w-3/4" />
-        </div>
-      </CardContent>
-      <CardFooter className="flex p-4 border-t border-gray-700">
-        <SkeletonLoader className="flex-1 h-10 mr-2" />
-        <SkeletonLoader className="h-10 w-20" />
-      </CardFooter>
-    </Card>
+      </main>
+
+      {/* Input Dock */}
+      <div className="sticky bottom-0 z-20 p-4 border-t border-border bg-background/80 backdrop-blur-md flex items-center gap-2">
+        <SkeletonLoader className="flex-1 h-10 rounded-lg" />
+        <SkeletonLoader className="h-10 w-20 rounded-lg" />
+      </div>
+    </div>
   );
 };
 

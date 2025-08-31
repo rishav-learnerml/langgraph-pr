@@ -6,5 +6,6 @@ POST http://127.0.0.1:8000/chat
 Content-Type: application/json
 
 {
-    "message": "Hello, My name is Risav!"
+    "message": "Hello, My name is Risav!",
+    "thread_id": "test-thread-1"
 }

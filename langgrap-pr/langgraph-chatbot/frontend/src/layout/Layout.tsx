@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Sidebar, { SidebarProvider } from "@/components/Sidebar";
 import { motion, AnimatePresence } from "framer-motion";
+import Footer from "@/components/Footer";
 
 const Layout = () => {
   const location = useLocation();
@@ -24,6 +25,7 @@ const Layout = () => {
                 <Outlet />
               </motion.div>
             </AnimatePresence>
+          <Footer />
           </main>
         </div>
       </SidebarProvider>

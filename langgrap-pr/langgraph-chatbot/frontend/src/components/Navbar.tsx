@@ -31,23 +31,30 @@ const Navbar = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="bg-popover text-popover-foreground border dark:border-gray-300 shadow-lg"
+            className="border border-border/50 
+             bg-background/60 dark:bg-white/40
+             backdrop-blur-xl shadow-xl 
+             rounded-xl p-2
+             text-foreground transition-all"
           >
             <DropdownMenuItem
               onClick={() => setTheme("light")}
-              className="hover:bg-accent hover:text-accent-foreground cursor-pointer dark:text-gray-200"
+              className="hover:bg-accent/50 hover:text-accent-foreground 
+               cursor-pointer rounded-lg px-3 py-2 dark:text-white"
             >
               Light
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setTheme("dark")}
-              className="hover:bg-accent hover:text-accent-foreground cursor-pointer dark:text-gray-200"
+              className="hover:bg-accent/50 hover:text-accent-foreground 
+               cursor-pointer rounded-lg px-3 py-2 dark:text-white"
             >
               Dark
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setTheme("system")}
-              className="hover:bg-accent hover:text-accent-foreground cursor-pointer dark:text-gray-200"
+              className="hover:bg-accent/50 hover:text-accent-foreground 
+               cursor-pointer rounded-lg px-3 py-2 dark:text-white"
             >
               System
             </DropdownMenuItem>

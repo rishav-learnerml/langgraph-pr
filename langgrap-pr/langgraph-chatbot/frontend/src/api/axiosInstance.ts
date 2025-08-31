@@ -1,8 +1,8 @@
-import { BASE_URL } from "@/constants/api_endpoints";
 import axios from "axios";
+import { BASE_URL } from "@/constants/api_endpoints";
 
 const axiosInstance = axios.create({
-  baseURL: BASE_URL, // FastAPI backend URL
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },

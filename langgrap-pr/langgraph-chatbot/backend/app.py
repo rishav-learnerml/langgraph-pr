@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import uvicorn
 from src.graph.chatbot_graph import ChatbotState
 from langchain_core.messages import HumanMessage
+import uuid
 
 
 app = FastAPI()
@@ -20,10 +21,13 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     message: str
+    thread_id: str | None = None
 
 
 chatbot_state = ChatbotState()
 chatbot_graph = chatbot_state.build_graph()
+thread_id = str(uuid.uuid4())
+
 
 
 @app.get("/")
@@ -34,7 +38,6 @@ async def read_root():
 @app.post("/chat")
 async def chat_with_bot(request: ChatRequest):
     try:
-        thread_id='1'
         # Invoke the chatbot with the user's message
         response = chatbot_graph.invoke(
             {"messages": [HumanMessage(content=request.message)]},

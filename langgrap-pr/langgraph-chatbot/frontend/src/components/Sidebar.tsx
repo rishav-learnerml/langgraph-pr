@@ -1,9 +1,9 @@
 import { createContext, useContext, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Home, MessageSquare, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
+import { navItems } from "@/constants/navitems";
 
 const SidebarContext = createContext<any>(null);
 
@@ -22,12 +22,6 @@ export const SidebarProvider = ({
 
 export const useSidebar = () => useContext(SidebarContext);
 
-const navItems = [
-  { name: "Home", path: "/", icon: Home },
-  { name: "Chat", path: "/chat", icon: MessageSquare },
-  { name: "Settings", path: "/settings", icon: Settings },
-];
-
 const Sidebar = () => {
   const { pathname } = useLocation();
 
@@ -44,7 +38,7 @@ const Sidebar = () => {
             <Link key={name} to={path}>
               <Button
                 variant={pathname === path ? "secondary" : "ghost"}
-                className="w-full justify-start gap-3"
+                className="w-full justify-start gap-3 hover:bg-gray-400 hover:dark:bg-gray-500"
               >
                 <Icon className="h-5 w-5" />
                 {name}

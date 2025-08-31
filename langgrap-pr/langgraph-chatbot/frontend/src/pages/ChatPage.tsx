@@ -1,20 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { BotIcon } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { BotIcon, Settings } from "lucide-react";
 import useChat from "@/hooks/useChat";
 import { BeatLoader } from "react-spinners";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import QuestionBubble from "@/components/chat/QuestionBubble";
 import AnswerBubble from "@/components/chat/AnswerBubble";
+import ChatInput from "@/components/chat/ChatInput";
 
 const ChatPage = () => {
   const [inputValue, setInputValue] = useState("");
@@ -24,15 +17,8 @@ const ChatPage = () => {
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const handleSendMessage = () => {
@@ -42,65 +28,65 @@ const ChatPage = () => {
     }
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      event.preventDefault(); // Prevent new line on Enter
-      handleSendMessage();
-    }
-  };
-
   return (
-    <Card className="w-full max-w-3xl mx-auto flex flex-col h-[85vh] bg-card text-card-foreground border border-border shadow-2xl rounded-2xl overflow-hidden">
-      <CardHeader className="border-b border-border py-5 px-7 flex flex-row items-center justify-between bg-gradient-to-r from-card to-background">
-        <CardTitle className="text-2xl font-bold text-primary tracking-wide">
-          ChatSphere Assistant
-        </CardTitle>
-        {/* Potentially add more header elements like a settings button or user icon here */}
-      </CardHeader>
-      <CardContent className="flex-1 p-6 overflow-y-auto bg-background custom-scrollbar">
-        <div className="flex flex-col space-y-4">
-          {messages.map((msg, index) =>
-            msg.type === "human" ? (
-              <QuestionBubble key={index} content={msg.content} />
-            ) : (
-              <AnswerBubble key={index} content={msg.content} />
-            )
-          )}
-          {loading && (
-            <div className="flex justify-start items-center">
-              <BotIcon size={32} />
-
-              <div className="max-w-[75%] p-4 rounded-lg bg-muted text-muted-foreground animate-fade-in shadow-inner dark:text-gray-200">
-                <BeatLoader size={10} color="#624477"/>
-              </div>
-            </div>
-          )}
-          {error && (
-            <div className="text-destructive mt-3 animate-fade-in font-medium">
-              Error: {error}
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+    <div className="relative flex flex-col h-[78vh] overflow-hidden bg-gradient-to-br from-background via-muted/30 to-background text-foreground">
+      {/* Top Navigation */}
+      <header className="sticky top-0 z-20 flex items-center justify-between px-6 pb-2 border-b border-border backdrop-blur-md bg-background/80">
+        <div className="flex items-center gap-3">
+          <BotIcon className="h-6 w-6 text-primary" />
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight">
+            ChatSphere Assistant
+          </h1>
         </div>
-      </CardContent>
-      <CardFooter className="flex p-5 border-t border-border bg-card">
-        <Input
-          type="text"
-          placeholder="Type your message..."
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={handleKeyPress}
-          className="flex-1 mr-4 bg-input border-input text-foreground placeholder-muted-foreground focus-visible:ring-primary focus-visible:ring-offset-background text-base rounded-lg px-4 py-3 shadow-inner transition-all duration-200"
-        />
-        <Button
-          onClick={handleSendMessage}
-          disabled={loading}
-          className="bg-primary border light:border-black-100 dark:border-gray-100 hover:bg-primary/90 text-primary-foreground transition-all duration-200 shadow-lg rounded-lg px-6 py-3 font-semibold text-base"
-        >
-          Send
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <Settings className="h-5 w-5" />
         </Button>
-      </CardFooter>
-    </Card>
+      </header>
+
+      {/* Chat Area */}
+      <main className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
+        {messages.length === 0 && (
+          <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground space-y-4">
+            <BotIcon className="h-14 w-14 text-primary/70" />
+            <p className="text-lg font-medium">Start a conversation 🚀</p>
+            <p className="text-sm">Ask me anything…</p>
+          </div>
+        )}
+
+        {messages.map((msg, i) =>
+          msg.type === "human" ? (
+            <QuestionBubble key={i} content={msg.content} />
+          ) : (
+            <AnswerBubble key={i} content={msg.content} />
+          )
+        )}
+
+        {loading && (
+          <div className="flex items-center space-x-3 animate-fade-in">
+            <BotIcon className="text-primary h-7 w-7" />
+            <div className="px-5 py-3 rounded-2xl bg-muted/70 shadow-inner">
+              <BeatLoader size={8} color="#6d28d9" />
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <p className="text-destructive font-medium animate-fade-in">
+            ⚠️ Error: {error}
+          </p>
+        )}
+
+        <div ref={messagesEndRef} />
+      </main>
+
+      {/* Input Dock */}
+      <ChatInput
+        inputValue={inputValue}
+        setInputValue={setInputValue}
+        handleSendMessage={handleSendMessage}
+        loading={loading}
+      />
+    </div>
   );
 };
 
