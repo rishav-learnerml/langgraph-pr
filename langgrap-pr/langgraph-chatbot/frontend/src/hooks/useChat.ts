@@ -31,13 +31,13 @@ const useChat = () => {
 
       evtSource.onmessage = (e) => {
         if (e.data === "[DONE]") {
-          console.log("END CHUNK:", e.data); // 👈 see tokens as they arrive
+          // console.log("END CHUNK:", e.data); // 👈 see tokens as they arrive
 
           evtSource.close();
           dispatch(finalizeLastMessage());
           dispatch(setLoading(false));
         } else if (e.data.trim()) {
-          console.log("STREAM CHUNK:", e.data); // 👈 see tokens as they arrive
+          // console.log("STREAM CHUNK:", e.data); // 👈 see tokens as they arrive
           dispatch(updateLastMessage(e.data));
         }
       };
