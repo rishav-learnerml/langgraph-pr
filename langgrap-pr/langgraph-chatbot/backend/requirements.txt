@@ -4,4 +4,4 @@ langchain-core
 langchain-groq
 dotenv
 fastapi
-uvicorn
+uvicorn[standard]

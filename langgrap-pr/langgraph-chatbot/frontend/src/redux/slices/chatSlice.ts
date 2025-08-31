@@ -14,6 +14,21 @@ const chatSlice = createSlice({
     addMessage: (state, action: PayloadAction<Message>) => {
       state.messages.push(action.payload);
     },
+    updateLastMessage: (state, action: PayloadAction<string>) => {
+      const lastMsg = state.messages[state.messages.length - 1];
+
+      if (lastMsg && lastMsg.type === "ai") {
+        lastMsg.content += action.payload;
+      }
+      // console.log(state.messages,'message state')
+    },
+    finalizeLastMessage: (state) => {
+      const lastMsg: any = state.messages[state.messages.length - 1];
+      if (lastMsg && lastMsg.type === "ai") {
+        // mark message as finished
+        lastMsg.isFinal = true as any;
+      }
+    },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
     },
@@ -28,7 +43,13 @@ const chatSlice = createSlice({
   },
 });
 
-export const { addMessage, setLoading, setError, clearChat } =
-  chatSlice.actions;
+export const {
+  addMessage,
+  updateLastMessage,
+  finalizeLastMessage,
+  setLoading,
+  setError,
+  clearChat,
+} = chatSlice.actions;
 
 export default chatSlice.reducer;

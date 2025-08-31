@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { BotIcon, Settings } from "lucide-react";
 import useChat from "@/hooks/useChat";
-import { BeatLoader } from "react-spinners";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import QuestionBubble from "@/components/chat/QuestionBubble";
@@ -57,17 +56,13 @@ const ChatPage = () => {
           msg.type === "human" ? (
             <QuestionBubble key={i} content={msg.content} />
           ) : (
-            <AnswerBubble key={i} content={msg.content} />
+            <AnswerBubble
+              key={i}
+              content={msg.content}
+              isStreaming={loading && i === messages.length - 1}
+              isFinal={(msg as any).isFinal}
+            />
           )
-        )}
-
-        {loading && (
-          <div className="flex items-center space-x-3 animate-fade-in">
-            <BotIcon className="text-primary h-7 w-7" />
-            <div className="px-5 py-3 rounded-2xl bg-muted/70 shadow-inner">
-              <BeatLoader size={8} color="#6d28d9" />
-            </div>
-          </div>
         )}
 
         {error && (
