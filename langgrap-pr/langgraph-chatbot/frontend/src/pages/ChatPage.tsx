@@ -41,7 +41,7 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="relative flex flex-col h-[78vh] overflow-hidden bg-gradient-to-br from-background via-muted/30 to-background text-foreground">
+    <div className="relative flex flex-col h-[78vh] overflow-y-auto md:overflow-hidden bg-gradient-to-br from-background via-muted/30 to-background text-foreground">
       {/* Top Navigation */}
       <header className="sticky top-0 z-20 flex items-center justify-between px-6 pb-2 border-b border-border backdrop-blur-md bg-background/80">
         <div className="flex items-center gap-3">
