@@ -7,22 +7,35 @@ import { RootState } from "@/redux/store";
 import QuestionBubble from "@/components/chat/QuestionBubble";
 import AnswerBubble from "@/components/chat/AnswerBubble";
 import ChatInput from "@/components/chat/ChatInput";
+import { useSearchParams } from "react-router-dom";
+import { useConversationHistory } from "@/hooks/useConversationHistory";
 
 const ChatPage = () => {
   const [inputValue, setInputValue] = useState("");
   const { sendMessage } = useChat();
+  const { fetchConversation } = useConversationHistory();
   const { messages, loading, error } = useSelector(
     (state: RootState) => state.chat
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get("sessionId");
 
+  // scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // fetch history when sessionId changes
+  useEffect(() => {
+    if (sessionId) {
+      fetchConversation(sessionId);
+    }
+  }, [sessionId, fetchConversation]);
+
   const handleSendMessage = () => {
     if (inputValue.trim()) {
-      sendMessage(inputValue);
+      sendMessage(inputValue, sessionId || undefined); // ✅ pass sessionId to backend
       setInputValue("");
     }
   };

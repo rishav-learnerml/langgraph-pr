@@ -3,6 +3,7 @@ import { Message, ChatState } from "@/types";
 
 const initialState: ChatState = {
   messages: [],
+  session_id: null,
   loading: false,
   error: null,
 };
@@ -11,6 +12,9 @@ const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
+    initializeChat: (state, action: PayloadAction<string>) => {
+      state.session_id = action.payload;
+    },
     addMessage: (state, action: PayloadAction<Message>) => {
       state.messages.push(action.payload);
     },
@@ -20,14 +24,15 @@ const chatSlice = createSlice({
       if (lastMsg && lastMsg.type === "ai") {
         lastMsg.content += action.payload;
       }
-      // console.log(state.messages,'message state')
     },
     finalizeLastMessage: (state) => {
       const lastMsg: any = state.messages[state.messages.length - 1];
       if (lastMsg && lastMsg.type === "ai") {
-        // mark message as finished
         lastMsg.isFinal = true as any;
       }
+    },
+    setMessages: (state, action: PayloadAction<Message[]>) => {
+      state.messages = action.payload;
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
@@ -47,9 +52,11 @@ export const {
   addMessage,
   updateLastMessage,
   finalizeLastMessage,
+  setMessages,   // ✅ new action
   setLoading,
   setError,
   clearChat,
+  initializeChat,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

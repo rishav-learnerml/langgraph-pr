@@ -1,13 +1,8 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SendHorizonal } from "lucide-react";
+import { ChatInputProps } from "@/interfaces/chat-interface";
 
-interface ChatInputProps {
-  inputValue: string;
-  setInputValue: (value: string) => void;
-  handleSendMessage: () => void;
-  loading: boolean;
-}
 
 const ChatInput: React.FC<ChatInputProps> = ({
   inputValue,

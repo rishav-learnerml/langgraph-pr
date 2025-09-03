@@ -7,41 +7,49 @@ import {
   setError,
 } from "@/redux/slices/chatSlice";
 import { API_ENDPOINTS, BASE_URL } from "@/constants/api_endpoints";
+import { useLocation } from "react-router-dom";
 
 const useChat = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
 
-  const sendMessage = async (message: string) => {
+  // Extract sessionId from query params
+  const searchParams = new URLSearchParams(location.search);
+  const urlThreadId = searchParams.get("sessionId");
+
+  const sendMessage = async (message: string, sessionId?: string) => {
+    const activeThreadId = sessionId || urlThreadId;
+
+    if (!activeThreadId) {
+      console.error("No thread_id found (URL or argument missing)");
+      dispatch(setError("No session ID provided"));
+      return;
+    }
+
     dispatch(setLoading(true));
     dispatch(setError(null));
 
     try {
-      // Add human message immediately
+      // Push human + placeholder ai message into store
       dispatch(addMessage({ type: "human", content: message }));
-
-      // Add placeholder AI message
       dispatch(addMessage({ type: "ai", content: "", isFinal: false }));
 
       // Open SSE connection
       const evtSource = new EventSource(
         `${BASE_URL + API_ENDPOINTS.STREAM_CHAT}?message=${encodeURIComponent(
           message
-        )}`
+        )}&thread_id=${activeThreadId}`
       );
 
       evtSource.onmessage = (e) => {
         if (e.data === "[DONE]") {
-          // console.log("END CHUNK:", e.data); // 👈 see tokens as they arrive
-
           evtSource.close();
           dispatch(finalizeLastMessage());
           dispatch(setLoading(false));
         } else if (e.data.trim()) {
-          // console.log("STREAM CHUNK:", e.data); // 👈 see tokens as they arrive
           dispatch(updateLastMessage(e.data));
         }
       };
-      
 
       evtSource.onerror = () => {
         evtSource.close();
@@ -55,7 +63,7 @@ const useChat = () => {
     }
   };
 
-  return { sendMessage };
+  return { sendMessage, thread_id: urlThreadId };
 };
 
 export default useChat;

@@ -2,10 +2,7 @@ import React from "react";
 import { CircleUserRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-interface QuestionBubbleProps {
-  content: string;
-}
+import { QuestionBubbleProps } from "@/interfaces/chat-interface";
 
 const QuestionBubble: React.FC<QuestionBubbleProps> = ({ content }) => {
   return (

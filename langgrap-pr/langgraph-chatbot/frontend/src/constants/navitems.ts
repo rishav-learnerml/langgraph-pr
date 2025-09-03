@@ -1,7 +1,18 @@
-import { Home, MessageSquare, Settings } from "lucide-react";
+import { Home, MessageSquare, MessageSquarePlus } from "lucide-react";
+import { generateSessionId } from "@/utils/helper/generateSessionId";
 
-export const  navItems = [
-    { name: "Home", path: "/", icon: Home },
-    { name: "Chat", path: "/chat", icon: MessageSquare },
-    { name: "Settings", path: "/settings", icon: Settings },
-  ];
+export const navItems = [
+  { name: "Home", path: "/", icon: Home, expandable: false },
+  {
+    name: "New Chat",
+    path: "/chat?sessionId=" + generateSessionId(),
+    icon: MessageSquarePlus,
+    expandable: false,
+  },
+  {
+    name: "Chat Sessions",
+    path: null,
+    icon: MessageSquare,
+    expandable: true,
+  },
+];

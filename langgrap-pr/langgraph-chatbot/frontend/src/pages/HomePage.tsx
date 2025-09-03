@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { features } from "@/constants/features";
 import { Feature } from "@/constants/features";
+import { generateSessionId } from "@/utils/helper/generateSessionId";
 
 function HomePage() {
   return (
@@ -51,10 +52,10 @@ function HomePage() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Link to="/chat">
+          <Link to={`/chat?sessionId=${generateSessionId()}`}>
             <Button
               size="lg"
-              className="px-10 py-6 text-lg rounded-2xl shadow-lg border dark:border-gray-800 transition-all hover:shadow-2xl"
+              className="px-10 py-6 text-lg rounded-2xl shadow-lg border dark:border-gray-800 transition-all hover:shadow-2xl cursor-pointer"
             >
               Start Chatting 🚀
             </Button>
