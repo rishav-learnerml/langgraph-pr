@@ -55,7 +55,7 @@ function HomePage() {
           <Link to={`/chat?sessionId=${generateSessionId()}`}>
             <Button
               size="lg"
-              className="px-10 py-6 text-lg rounded-2xl shadow-lg border dark:border-gray-800 transition-all hover:shadow-2xl cursor-pointer"
+              className="px-10 py-6 text-lg rounded-2xl shadow-lg border dark:border-gray-800 transition-all hover:shadow-2xl cursor-pointer hover:shadow-2xl hover:shadow-sky-300"
             >
               Start Chatting 🚀
             </Button>

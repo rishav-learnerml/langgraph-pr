@@ -1,9 +1,23 @@
+// src/redux/slices/chatSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Message, ChatState } from "@/types";
+import { v4 as uuidv4 } from "uuid";
+
+type Message = {
+  id: string;
+  type: "human" | "ai" | "tool";
+  content: string;
+  isFinal?: boolean;
+  meta?: any;
+};
+
+type ChatState = {
+  messages: Message[];
+  loading: boolean;
+  error: string | null;
+};
 
 const initialState: ChatState = {
   messages: [],
-  session_id: null,
   loading: false,
   error: null,
 };
@@ -12,73 +26,97 @@ const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
-    initializeChat: (state, action: PayloadAction<string>) => {
-      state.session_id = action.payload;
-    },
-    setMessages: (state, action: PayloadAction<Message[]>) => {
+    setMessages(state, action: PayloadAction<Message[]>) {
       state.messages = action.payload;
     },
-    setLoading: (state, action: PayloadAction<boolean>) => {
+
+    addMessage(state, action: PayloadAction<Message>) {
+      state.messages.push(action.payload);
+    },
+
+    // Append tokens to last open AI message (streaming)
+    appendToLastMessage(state, action: PayloadAction<string>) {
+      const text = action.payload ?? "";
+      if (!state.messages?.length) return;
+      for (let i = state.messages.length - 1; i >= 0; i--) {
+        const m = state.messages[i];
+        if (m.type === "ai" && !m.isFinal) {
+          m.content = (m.content || "") + text;
+          return;
+        }
+      }
+    },
+
+    // Replace last open AI message content (final)
+    setLastMessage(state, action: PayloadAction<string>) {
+      const text = action.payload ?? "";
+      if (!state.messages?.length) return;
+      for (let i = state.messages.length - 1; i >= 0; i--) {
+        const m = state.messages[i];
+        if (m.type === "ai" && !m.isFinal) {
+          m.content = text;
+          return;
+        }
+      }
+      // No open AI placeholder: append final AI
+      state.messages.push({
+        id: uuidv4(),
+        type: "ai",
+        content: text,
+        isFinal: true,
+      });
+    },
+
+    // Update a message by id (used to update tool messages)
+    updateMessageById(
+      state,
+      action: PayloadAction<{ id: string; patch: Partial<Message> }>
+    ) {
+      const { id, patch } = action.payload;
+      const idx = state.messages.findIndex((m) => m.id === id);
+      if (idx !== -1) {
+        state.messages[idx] = { ...state.messages[idx], ...patch };
+      }
+    },
+
+    // finalize last ai message (mark isFinal true)
+    finalizeLastMessage(state) {
+      for (let i = state.messages.length - 1; i >= 0; i--) {
+        const m = state.messages[i];
+        if (m.type === "ai" && !m.isFinal) {
+          m.isFinal = true;
+          return;
+        }
+      }
+    },
+
+    setLoading(state, action: PayloadAction<boolean>) {
       state.loading = action.payload;
     },
-    setError: (state, action: PayloadAction<string | null>) => {
+
+    setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
     },
-    clearChat: (state) => {
+
+    // optional: clear messages
+    clearMessages(state) {
       state.messages = [];
       state.loading = false;
       state.error = null;
-    },
-    // inside reducers:
-    addMessage: (state, action: PayloadAction<Message>) => {
-      state.messages.push(action.payload);
-    },
-    updateLastMessage: (state, action: PayloadAction<string>) => {
-      const lastMsg = state.messages[state.messages.length - 1];
-      if (lastMsg && lastMsg.type === "ai") {
-        lastMsg.content += action.payload;
-      }
-    },
-    finalizeLastMessage: (state) => {
-      const lastMsg: any = state.messages[state.messages.length - 1];
-      if (lastMsg && lastMsg.type === "ai") {
-        lastMsg.isFinal = true;
-      }
-    },
-    // New:
-    updateMessageById: (
-      state,
-      action: PayloadAction<{ id: string; patch: Partial<Message> }>
-    ) => {
-      const idx = state.messages.findIndex((m) => m.id === action.payload.id);
-      if (idx !== -1) {
-        state.messages[idx] = {
-          ...state.messages[idx],
-          ...action.payload.patch,
-        };
-      }
-    },
-    replaceMessageById: (
-      state,
-      action: PayloadAction<{ id: string; replacement: Message }>
-    ) => {
-      const idx = state.messages.findIndex((m) => m.id === action.payload.id);
-      if (idx !== -1) state.messages[idx] = action.payload.replacement;
     },
   },
 });
 
 export const {
-  addMessage,
-  updateLastMessage,
-  finalizeLastMessage,
   setMessages,
+  addMessage,
+  appendToLastMessage,
+  setLastMessage,
+  updateMessageById,
+  finalizeLastMessage,
   setLoading,
   setError,
-  clearChat,
-  initializeChat,
-  updateMessageById,
-  replaceMessageById,
+  clearMessages,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

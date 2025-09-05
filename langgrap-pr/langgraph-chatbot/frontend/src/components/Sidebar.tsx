@@ -7,7 +7,7 @@ import { navItems } from "@/constants/navitems";
 import { ChevronDown } from "lucide-react";
 import { SidebarContextType } from "@/types/sidebar";
 import { useDispatch } from "react-redux";
-import { clearChat } from "@/redux/slices/chatSlice";
+import { clearMessages } from "@/redux/slices/chatSlice";
 import { useHistory } from "@/hooks/useHistory";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
 import { addOptimisticSession } from "@/redux/slices/historySlice";
@@ -94,7 +94,7 @@ const Sidebar = () => {
                   <Link
                     to={path}
                     onClick={() => {
-                      dispatch(clearChat());
+                      dispatch(clearMessages());
                       setCurrentSessionId(searchParams.get("sessionId"));
                       dispatch(
                         addOptimisticSession({
@@ -156,11 +156,11 @@ const Sidebar = () => {
                     <p className="text-xs text-destructive px-2">⚠️ {error}</p>
                   )}
                   {!loading &&
-                    sessions?.map(({ thread_id, title }:any) => (
+                    sessions?.map(({ thread_id, title,index }:any) => (
                       <Link
                         to={`chat?sessionId=${thread_id}`}
                         className={`text-sm text-muted-foreground hover:text-foreground border rounded-lg p-2 mx-4 hover:bg-gray-600 text-white ${
-                          thread_id === searchParams.get("sessionId") || title==='New Chat'
+                          thread_id === searchParams.get("sessionId") || (title==='New Chat' && index==0)
                             ? "bg-gray-700"
                             : "bg-black"
                         }`}

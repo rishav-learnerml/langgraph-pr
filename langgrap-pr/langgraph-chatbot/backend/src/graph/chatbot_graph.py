@@ -49,6 +49,7 @@ class ChatbotGraph:
 
         # After tools finish, return to chat_node for the LLM to consume tool results
         self.graph.add_edge("tools", "chat_node")
+        self.graph.add_edge("chat_node", END)
 
         # Optional: if you want chat_node to be able to end the flow explicitly:
         # (you can omit this if your chat_node handles finishing itself)

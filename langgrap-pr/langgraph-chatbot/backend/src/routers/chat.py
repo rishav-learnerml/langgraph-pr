@@ -632,15 +632,13 @@ async def stream_chat(
 
         # --- Persist AI + tool logs ---
         print("[event_generator] Preparing to persist AI content and tool logs. ai_content length:", len(ai_content), "final_synth_text length:", len(final_synth_text))
-        ops = []
-        # prefer final_synth_text for persisted AI if present; otherwise persist ai_content
-        ai_to_persist = final_synth_text.strip() or ai_content.strip()
-        if ai_to_persist:
-            ops.append({"role": "ai", "content": ai_to_persist})
-            print("[event_generator] Appended AI content to ops.")
 
+        # --- BUILD OPS: persist tool entries FIRST, then AI message (so UI shows tools before answer) ---
+        ops: list = []
+
+        # Build tool ops from tool_logs_buffer (only 'end' phase)
+        tool_ops = []
         for t in tool_logs_buffer:
-            print("[event_generator] Examining tool log entry for persistence:", t.get("tool_name"))
             if t.get("phase") == "end":
                 start_args = next(
                     (x.get("args") for x in tool_logs_buffer if x.get("phase") == "start" and x.get("tool_name") == t.get("tool_name") and x.get("call_id") == t.get("call_id")),
@@ -662,12 +660,22 @@ async def stream_chat(
                 }, default=str)
 
                 escaped_content = content_json.replace("{", "{{").replace("}", "}}")
-                ops.append({
+                tool_ops.append({
                     "role": "tool",
                     "name": t.get("tool_name"),
                     "content": escaped_content,
                 })
-                print("[event_generator] Appended tool op to ops.")
+
+        # append tool_ops first (if any)
+        if tool_ops:
+            ops.extend(tool_ops)
+            print(f"[event_generator] Prepared {len(tool_ops)} tool op(s) for persistence.")
+
+        # prefer final_synth_text for persisted AI if present; otherwise persist ai_content
+        ai_to_persist = final_synth_text.strip() or ai_content.strip()
+        if ai_to_persist:
+            ops.append({"role": "ai", "content": ai_to_persist})
+            print("[event_generator] Appended AI content to ops.")
 
         if ops:
             print("[event_generator] About to write ops to MongoDB:", len(ops))

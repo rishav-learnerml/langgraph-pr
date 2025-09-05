@@ -14,9 +14,27 @@ function prettyJson(obj: any) {
 
 /** Minimal spinner */
 const Spinner: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className ?? "h-4 w-4 animate-spin"} viewBox="0 0 24 24" fill="none" aria-hidden>
-    <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-    <path className="opacity-90" d="M22 12a10 10 0 00-10-10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+  <svg
+    className={className ?? "h-4 w-4 animate-spin"}
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden
+  >
+    <circle
+      className="opacity-20"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="3"
+    />
+    <path
+      className="opacity-90"
+      d="M22 12a10 10 0 00-10-10"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
   </svg>
 );
 
@@ -31,18 +49,21 @@ const Spinner: React.FC<{ className?: string }> = ({ className }) => (
  *  - Clicking the heading toggles an expanded panel that shows Args / Result / Raw content.
  */
 const ToolBubble: React.FC<{ msg: any }> = ({ msg }) => {
+  console.log(msg, "msg");
   const [open, setOpen] = useState(false);
   const meta = msg.meta ?? {};
   const title = meta.tool_name ?? meta.toolName ?? meta.name ?? "tool";
   const args = meta.args ?? meta.input ?? meta.arguments ?? null;
   const result = meta.result ?? meta.output ?? meta.content ?? null;
   const callId = meta.call_id ?? meta.toolCallId ?? meta.callId ?? null;
-  const running = msg.isFinal === false || msg.phase === "start" || msg.status === "running";
+  const running =
+    msg.isFinal === false || msg.phase === "start" || msg.status === "running";
 
   // Short one-line preview derived from result or content (only for heading)
   const shortPreview = (() => {
     if (result) {
-      if (typeof result === "string") return result.split("\n\n")[0].slice(0, 120);
+      if (typeof result === "string")
+        return result.split("\n\n")[0].slice(0, 120);
       try {
         const s = JSON.stringify(result);
         return s.length > 120 ? s.slice(0, 120) + "..." : s;
@@ -83,7 +104,11 @@ const ToolBubble: React.FC<{ msg: any }> = ({ msg }) => {
           >
             <div className="flex items-center gap-3 min-w-0">
               <div className="flex items-center justify-center h-7 w-7 rounded-full bg-black/30">
-                {running ? <Spinner className="h-4 w-4 text-yellow-400" /> : <div className="h-3 w-3 rounded-full bg-green-400" />}
+                {running ? (
+                  <Spinner className="h-4 w-4 text-yellow-400" />
+                ) : (
+                  <div className="h-3 w-3 rounded-full bg-green-400" />
+                )}
               </div>
 
               <div className="flex flex-col min-w-0">
@@ -91,17 +116,30 @@ const ToolBubble: React.FC<{ msg: any }> = ({ msg }) => {
                   <div className="px-2 py-0.5 rounded bg-yellow-500 text-black text-xs font-medium truncate">
                     {title}
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">{running ? "Running..." : "Finished"}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {running ? "Running..." : "Finished"}
+                  </div>
                 </div>
-                {shortPreview && <div className="text-xs text-muted-foreground mt-1 truncate">{shortPreview}</div>}
+                {shortPreview && (
+                  <div className="text-xs text-muted-foreground mt-1 truncate">
+                    {shortPreview}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              {callId && <div className="text-xs text-muted-foreground truncate">{String(callId)}</div>}
+              {callId && (
+                <div className="text-xs text-muted-foreground truncate">
+                  {String(callId)}
+                </div>
+              )}
               <div className="flex items-center gap-2">
-                <div className="text-xs text-muted-foreground mr-1">{open ? "Hide" : "Show"}</div>
-                {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                {open ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
               </div>
             </div>
           </CardContent>
@@ -118,7 +156,9 @@ const ToolBubble: React.FC<{ msg: any }> = ({ msg }) => {
                 </pre>
               </>
             ) : (
-              <div className="text-muted-foreground mb-2">No structured args available.</div>
+              <div className="text-muted-foreground mb-2">
+                No structured args available.
+              </div>
             )}
 
             {result ? (
@@ -129,7 +169,9 @@ const ToolBubble: React.FC<{ msg: any }> = ({ msg }) => {
                 </pre>
               </>
             ) : (
-              <div className="text-muted-foreground mt-2">No result available yet.</div>
+              <div className="text-muted-foreground mt-2">
+                No result available yet.
+              </div>
             )}
 
             {/* Raw fallback content */}

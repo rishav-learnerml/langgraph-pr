@@ -7,7 +7,6 @@ from src.tools.web_search_tool import duckduckgo_search_tool
 from src.tools.webscrapper_tool import webscrapper_tool
 from typing import List, Dict, Any, Optional
 import json
-import asyncio
 
 # ------------------ helpers ------------------
 
@@ -21,7 +20,7 @@ def _normalize_tool_message(msg: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Normalize a message object into a tool entry:
       {"tool_name", "args", "result", "call_id", "raw"}
-    Return None if the message doesn't look like a tool record.
+    Return None if the message doesn't look like a tool record or don't need a tool.
     """
     try:
         meta = msg.get("meta") or {}
@@ -214,6 +213,7 @@ async def stream_final_synthesis(tool_entries: List[Dict[str, Any]], last_human_
 async def chat_node(state: ChatState):
     """
     Streaming chat_node that:
+      - uses a system prompt and few_shots to guide the model to call tools only when needed
       - streams the model that may call tools (unchanged behavior)
       - after that streaming completes, collects only the tool outputs produced
         during the current turn and streams a final LLM-synthesized answer based on them.
@@ -222,10 +222,10 @@ async def chat_node(state: ChatState):
     system_prompt = SystemMessage(
         content=(
             "You are a helpful, precise assistant. Use tools sparingly and only when you "
-            "cannot confidently answer using the prompt + conversation context.\n\n"
+            "cannot confidently answer using the prompt + conversation context.\n\n Always try to answer directly without tools if you can.\n\n"
 
             "DECISION RULES (be strict):\n"
-            "1) Do NOT call a tool when the user asks you to produce code, examples, or explanations that do not require external facts.\n"
+            "1) Do NOT call a tool when the user greets you, asks you to produce code, examples, or explanations that do not require external facts.\n"
             "2) Call a tool when you need external information or to run computation that the runtime provides.\n"
             "3) When you decide to call a tool, output EXACTLY one line with this syntax and nothing else:\n"
             "   CALL_TOOL <tool_name> <JSON-args>\n"
@@ -264,7 +264,7 @@ async def chat_node(state: ChatState):
 
         # If we have tool outputs, stream a final synthesized answer that uses them
         if tool_entries:
-            async for synth_chunk in stream_final_synthesis(tool_entries, last_human_text):
+            async for synth_chunk in stream_final_synthesis(tool_entries, last_human_text):#tye: ignore
                 # synth_chunk already shaped as {"messages":[chunk]} or final AIMessage
                 yield synth_chunk
     except Exception:

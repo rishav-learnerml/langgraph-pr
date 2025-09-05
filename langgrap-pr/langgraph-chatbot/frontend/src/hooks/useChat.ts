@@ -5,36 +5,36 @@ import { v4 as uuidv4 } from "uuid";
 
 import {
   addMessage,
-  updateLastMessage,
+  updateMessageById,
+  appendToLastMessage,
+  setLastMessage,
   finalizeLastMessage,
   setLoading,
   setError,
-  updateMessageById,
 } from "@/redux/slices/chatSlice";
 import { API_ENDPOINTS, BASE_URL } from "@/constants/api_endpoints";
 import { useLocation } from "react-router-dom";
 import { MessageType } from "@/types/message";
 
 /**
- * useChat
- * - Streams assistant tokens into the last AI message (updateLastMessage)
- * - Adds a tool message on tool_call and updates the same message on tool_result using updateMessageById
- * - Finalizes AI messages on `message` or `done`
+ * useChat - robust SSE streaming handler
  *
- * Assumes Message type accepts fields: id, type, content, isFinal?, meta?
+ * Behavior:
+ * - Adds human message
+ * - Adds ai placeholder (isFinal: false)
+ * - Listens for SSE events: token, tool_call, tool_result, message (final), done
+ * - token => appendToLastMessage
+ * - tool_call => add tool message (mapping call_id -> client msg id)
+ * - tool_result => updateMessageById for mapped tool message
+ * - message => setLastMessage (final text) then finalizeLastMessage
  */
+
 const useChat = () => {
   const dispatch = useDispatch();
   const location = useLocation();
-
-  // EventSource ref
   const evtRef = useRef<EventSource | null>(null);
-
-  // Map to correlate tool_name (or a tool call id) -> client message id
-  // If your server can emit a unique call id per tool call, prefer that over tool_name
   const toolMessageRef = useRef<Record<string, string>>({});
 
-  // Extract sessionId from query params
   const searchParams = new URLSearchParams(location.search);
   const urlThreadId = searchParams.get("sessionId") ?? undefined;
 
@@ -43,8 +43,6 @@ const useChat = () => {
       try {
         evtRef.current.close();
       } catch (err) {
-        // ignore
-        // eslint-disable-next-line no-console
         console.warn("Error closing EventSource", err);
       }
       evtRef.current = null;
@@ -66,7 +64,6 @@ const useChat = () => {
         return;
       }
 
-      // Close any ongoing streams
       closeStream();
 
       dispatch(setLoading(true));
@@ -81,7 +78,7 @@ const useChat = () => {
         };
         dispatch(addMessage(humanMsg));
 
-        // 2) Push placeholder AI message that will receive streamed tokens
+        // 2) Push placeholder AI message (will receive streamed tokens)
         const aiMsgId = uuidv4();
         dispatch(
           addMessage({
@@ -102,44 +99,35 @@ const useChat = () => {
         const evtSource = new EventSource(url);
         evtRef.current = evtSource;
 
-        // Diagnostics
         evtSource.onopen = (ev) => {
-          // eslint-disable-next-line no-console
-          console.log("SSE opened", ev);
+          console.log("[SSE] opened", ev);
         };
 
-        // Token event: append token to last AI message
+        // tokens - append
         evtSource.addEventListener("token", (e: MessageEvent) => {
           try {
             const parsed = JSON.parse(e.data);
-            const text =
-              typeof parsed === "object" ? parsed.text ?? "" : parsed;
+            const text = typeof parsed === "object" ? parsed.text ?? "" : String(parsed);
             if (text) {
-              dispatch(updateLastMessage(text));
+              console.log("[SSE] token:", text);
+              dispatch(appendToLastMessage(String(text)));
             }
           } catch (err) {
-            // fallback: append raw data
-            if (e.data) {
-              dispatch(updateLastMessage(e.data));
-            }
-            // eslint-disable-next-line no-console
-            console.warn("token parse error", err, e.data);
+            console.warn("[SSE] token parse error:", err, e.data);
+            dispatch(appendToLastMessage(String(e.data)));
           }
         });
 
-        // Tool call started -> add a tool message and record mapping
+        // tool_call -> create a tool message and map call id to client id
         evtSource.addEventListener("tool_call", (e: MessageEvent) => {
           try {
             const parsed = JSON.parse(e.data);
-            // server should ideally send a unique call_id; fall back to tool_name
+            console.log("[SSE] tool_call:", parsed);
             const toolCallId = parsed.call_id ?? parsed.tool_name ?? uuidv4();
             const tool_name = parsed.tool_name ?? "unknown_tool";
             const args = parsed.args ?? {};
-
             const msgId = uuidv4();
-            // Map the server toolCallId (or tool_name) to this client message id
             toolMessageRef.current[toolCallId] = msgId;
-
             dispatch(
               addMessage({
                 id: msgId,
@@ -150,37 +138,23 @@ const useChat = () => {
               })
             );
           } catch (err) {
-            // eslint-disable-next-line no-console
-            console.warn("tool_call parse error", err, e.data);
-            const msgId = uuidv4();
-            dispatch(
-              addMessage({
-                id: msgId,
-                type: "tool",
-                content: `▶️ tool called: ${String(e.data)}`,
-                isFinal: false,
-                meta: { raw: e.data },
-              })
-            );
+            console.warn("[SSE] tool_call parse error", err, e.data);
           }
         });
 
-        // Tool result -> update the original tool message in-place via updateMessageById
+        // tool_result -> update mapped tool message
         evtSource.addEventListener("tool_result", (e: MessageEvent) => {
           try {
             const parsed = JSON.parse(e.data);
-            const toolCallId = parsed.call_id ?? parsed.tool_name ?? null;
+            console.log("[SSE] tool_result:", parsed);
+            const toolCallId = parsed.call_id ?? null;
             const tool_name = parsed.tool_name ?? "unknown_tool";
             let result = parsed.result ?? parsed.output ?? parsed;
 
-            // If result is a JSON string, try parsing it
             if (typeof result === "string") {
               try {
-                const maybeObj = JSON.parse(result);
-                result = maybeObj;
-              } catch {
-                // keep string
-              }
+                result = JSON.parse(result);
+              } catch {}
             }
 
             const mappedMsgId =
@@ -189,32 +163,28 @@ const useChat = () => {
               null;
 
             const pretty =
-              typeof result === "object"
-                ? JSON.stringify(result, null, 2)
-                : String(result);
+              typeof result === "object" ? JSON.stringify(result, null, 2) : String(result);
 
             if (mappedMsgId) {
               dispatch(
                 updateMessageById({
                   id: mappedMsgId,
                   patch: {
-                    content: `${pretty}`,
+                    content: pretty,
                     isFinal: true,
                     meta: { tool_name, result, phase: "finished", toolCallId },
                   },
                 })
               );
+              // optionally remove mapping now
               if (toolCallId && toolMessageRef.current[toolCallId]) {
                 delete toolMessageRef.current[toolCallId];
-              } else if (toolMessageRef.current[tool_name]) {
-                delete toolMessageRef.current[tool_name];
               }
             } else {
-              // fallback
-              const fallbackId = uuidv4();
+              // fallback: push a new tool message
               dispatch(
                 addMessage({
-                  id: fallbackId,
+                  id: uuidv4(),
                   type: "tool",
                   content: `◀️ ${tool_name} result: ${pretty}`,
                   isFinal: true,
@@ -223,40 +193,35 @@ const useChat = () => {
               );
             }
           } catch (err) {
-            console.warn("tool_result parse error", err, e.data);
-            const fallbackId = uuidv4();
-            dispatch(
-              addMessage({
-                id: fallbackId,
-                type: "tool",
-                content: `◀️ tool result: ${String(e.data)}`,
-                isFinal: true,
-                meta: { raw: e.data },
-              })
-            );
+            console.warn("[SSE] tool_result parse error", err, e.data);
           }
         });
 
-        // Final assistant message event — finalize the last AI message
+        // final human-facing message: set final content then finalize
         evtSource.addEventListener("message", (e: MessageEvent) => {
           try {
             const parsed = JSON.parse(e.data);
-            const text = parsed.text ?? "";
-            // if server sent final text, we could append it (but tokens should usually cover content)
+            const text = parsed?.text ?? "";
+            console.log("[SSE] final message:", text);
+
             if (text) {
-              // optionally: dispatch(updateLastMessage(text));
+              // Replace final content (not append)
+              dispatch(setLastMessage(String(text)));
+            } else {
+              console.warn("[SSE] message event had no text:", e.data);
             }
           } catch (err) {
-            // eslint-disable-next-line no-console
-            console.warn("final message parse failed", err, e.data);
+            console.warn("[SSE] final message parse failed:", err, e.data);
           }
+
           dispatch(finalizeLastMessage());
           dispatch(setLoading(false));
           closeStream();
         });
 
-        // Done marker — also safe-finalize
+        // done marker (backup finalize)
         evtSource.addEventListener("done", () => {
+          console.log("[SSE] done");
           dispatch(finalizeLastMessage());
           dispatch(setLoading(false));
           closeStream();
@@ -264,7 +229,6 @@ const useChat = () => {
 
         // SSE onerror
         evtSource.onerror = (err) => {
-          // eslint-disable-next-line no-console
           console.error("SSE error", err);
           closeStream();
           dispatch(setError("Streaming connection failed"));
@@ -274,7 +238,6 @@ const useChat = () => {
         closeStream();
         dispatch(setError("Failed to send message. Please try again."));
         dispatch(setLoading(false));
-        // eslint-disable-next-line no-console
         console.error("sendMessage error", err);
       }
     },

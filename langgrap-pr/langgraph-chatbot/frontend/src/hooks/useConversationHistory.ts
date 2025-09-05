@@ -108,6 +108,10 @@ export function useConversationHistory() {
             // Unescape doubled braces ({{ -> {, }} -> })
             const unescaped = unescapeDoubledBraces(rawContent);
 
+            // Prefer any tool-name the server saved on the message itself (common)
+            const serverToolName =
+              (m.name ?? m.tool_name ?? m._tool ?? (m.meta && m.meta.tool_name) ?? null) as string | null;
+
             // Attempt to parse as JSON
             const parsed = tryParseJsonSafe(unescaped);
 
@@ -116,7 +120,9 @@ export function useConversationHistory() {
               const args = parsed.args ?? parsed.input ?? parsed.arguments ?? null;
               const result = parsed.result ?? parsed.output ?? parsed.content ?? null;
               const call_id = parsed.call_id ?? parsed.callId ?? parsed.id ?? null;
-              const tool_name = parsed.tool_name ?? parsed.name ?? parsed._tool ?? null;
+
+              // Prefer tool_name inside parsed content; otherwise fallback to serverToolName
+              const tool_name = parsed.tool_name ?? parsed.name ?? parsed._tool ?? serverToolName ?? null;
 
               const preview = makeToolPreview(parsed) || (typeof result === "string" ? result.slice(0, 400) : "");
               const meta = {
@@ -137,14 +143,20 @@ export function useConversationHistory() {
               };
             }
 
-            // If parse failed, try a looser extraction: maybe content is already a readable string
-            const fallbackPreview = rawContent && rawContent.length > 0 ? (rawContent.length > 400 ? rawContent.slice(0, 400) + "..." : rawContent) : "tool";
+            // If parse failed, fallback: use serverToolName if available and raw content
+            const fallbackPreview =
+              rawContent && rawContent.length > 0
+                ? rawContent.length > 400
+                  ? rawContent.slice(0, 400) + "..."
+                  : rawContent
+                : String(serverToolName ?? "tool");
+
             return {
               id,
               type: "tool",
               content: fallbackPreview,
               isFinal: true,
-              meta: { fromServer: true, raw: rawContent },
+              meta: { fromServer: true, raw: rawContent, tool_name: serverToolName },
             };
           }
 
