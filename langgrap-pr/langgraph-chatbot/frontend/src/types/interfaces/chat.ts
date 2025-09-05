@@ -1,8 +1,13 @@
+import { MessageType } from "../message";
+
 export interface Message {
-  type: "human" | "ai";
+  id: string;
+  type: MessageType;
   content: string;
-  isFinal?: boolean;
+  isFinal?: boolean; // for ai or tool
+  meta?: Record<string, any>; // optional
 }
+
 
 export interface ChatState {
   messages: Message[];

@@ -34,10 +34,20 @@ const historySlice = createSlice({
       state.sessions = [];
       state.error = null;
     },
+    addOptimisticSession: (state, action: PayloadAction<Session>) => {
+      if (state.sessions.length > 0 && state.sessions[0].title === "New Chat")
+        return;
+      state.sessions.unshift(action.payload);
+    },
   },
 });
 
-export const { setSessions, setLoading, setError, clearSessions } =
-  historySlice.actions;
+export const {
+  setSessions,
+  setLoading,
+  setError,
+  clearSessions,
+  addOptimisticSession,
+} = historySlice.actions;
 
 export default historySlice.reducer;

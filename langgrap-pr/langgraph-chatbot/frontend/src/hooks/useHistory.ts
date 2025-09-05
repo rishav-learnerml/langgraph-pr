@@ -21,7 +21,7 @@ export function useHistory() {
       const res = await fetch(`${BASE_URL}${API_ENDPOINTS.SESSIONS}`);
       if (!res.ok) throw new Error("Failed to fetch sessions");
       const data = await res.json();
-      dispatch(setSessions(data));
+      dispatch(setSessions(data.reverse()));
     } catch (err: any) {
       dispatch(setError(err.message));
     } finally {

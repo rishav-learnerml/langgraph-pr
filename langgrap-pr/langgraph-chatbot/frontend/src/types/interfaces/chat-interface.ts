@@ -1,7 +1,10 @@
+import { Message } from "./chat";
+
 export interface AnswerBubbleProps {
-  content: string;
+  msg: Message;
   isStreaming?: boolean;
   isFinal?: boolean;
+  callingTool?: boolean;
 }
 
 export interface ChatInputProps {
@@ -12,5 +15,5 @@ export interface ChatInputProps {
 }
 
 export interface QuestionBubbleProps {
-  content: string;
+  msg: Message;
 }

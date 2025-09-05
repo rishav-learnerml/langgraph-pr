@@ -10,6 +10,7 @@ import { useDispatch } from "react-redux";
 import { clearChat } from "@/redux/slices/chatSlice";
 import { useHistory } from "@/hooks/useHistory";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
+import { addOptimisticSession } from "@/redux/slices/historySlice";
 
 const SidebarContext = createContext<SidebarContextType | null>(null);
 
@@ -68,10 +69,11 @@ const Sidebar = () => {
 
   useEffect(() => {
     fetchConversation(currentSessionId);
+    setCurrentSessionId(searchParams.get("sessionId"));
   }, []);
 
   return (
-    <aside className="hidden md:flex h-screen w-64 border-r bg-background">
+    <aside className="hidden md:flex h-screen w-72 border-r bg-background">
       <ScrollArea className="flex-1 py-6 px-3">
         <motion.div
           initial={{ opacity: 0, x: -10 }}
@@ -93,7 +95,13 @@ const Sidebar = () => {
                     to={path}
                     onClick={() => {
                       dispatch(clearChat());
-                      setCurrentSessionId(searchParams.get("sessionId"))
+                      setCurrentSessionId(searchParams.get("sessionId"));
+                      dispatch(
+                        addOptimisticSession({
+                          thread_id: searchParams.get("sessionId") as string,
+                          title: "New Chat",
+                        })
+                      );
                     }}
                   >
                     <Icon className="h-5 w-5" />
@@ -107,7 +115,12 @@ const Sidebar = () => {
                     )}
                   </Link>
                 ) : (
-                  <div>
+                  <div
+                    onClick={() => {
+                      fetchConversation(searchParams.get("sessionId"));
+                      setCurrentSessionId(searchParams.get("sessionId"));
+                    }}
+                  >
                     <Icon className="h-5 w-5" />
                     {name}
                     {expandable && (
@@ -127,7 +140,7 @@ const Sidebar = () => {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   transition={{ duration: 0.4 }}
-                  className="ml-8 mt-4 flex flex-col gap-3"
+                  className="ml-8 mt-4 flex flex-col gap-3 max-h-[75vh] overflow-auto custom-scrollbar"
                 >
                   {loading && (
                     <div className="space-y-2">
@@ -143,18 +156,18 @@ const Sidebar = () => {
                     <p className="text-xs text-destructive px-2">⚠️ {error}</p>
                   )}
                   {!loading &&
-                    sessions.map(({ thread_id, title }) => (
+                    sessions?.map(({ thread_id, title }:any) => (
                       <Link
                         to={`chat?sessionId=${thread_id}`}
-                        className={`text-sm text-muted-foreground hover:text-foreground border rounded-lg p-2 hover:bg-gray-700 ${
-                          thread_id === currentSessionId
+                        className={`text-sm text-muted-foreground hover:text-foreground border rounded-lg p-2 mx-4 hover:bg-gray-600 text-white ${
+                          thread_id === searchParams.get("sessionId") || title==='New Chat'
                             ? "bg-gray-700"
                             : "bg-black"
                         }`}
                         key={thread_id}
                         onClick={() => {
                           setCurrentSessionId(thread_id);
-                          dispatch(clearChat());
+                          // dispatch(clearChat());
                           fetchSessions();
                         }}
                       >

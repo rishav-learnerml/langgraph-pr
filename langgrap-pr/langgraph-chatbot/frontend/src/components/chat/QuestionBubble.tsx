@@ -2,9 +2,15 @@ import React from "react";
 import { CircleUserRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { QuestionBubbleProps } from "@/interfaces/chat-interface";
+import { QuestionBubbleProps } from "@/types/interfaces/chat-interface";
 
-const QuestionBubble: React.FC<QuestionBubbleProps> = ({ content }) => {
+/**
+ * QuestionBubbleProps expected:
+ * { msg: Message } where msg.content is the user text
+ */
+
+const QuestionBubble: React.FC<QuestionBubbleProps> = ({ msg }) => {
+  const content = msg?.content ?? "";
   return (
     <div className="flex justify-end items-end gap-3 animate-fade-in my-4">
       {/* User Question Card */}
